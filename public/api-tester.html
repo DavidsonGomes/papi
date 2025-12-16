@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester - Pastorini API</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #111111;
+            min-height: 100vh;
+            color: #e5e5e5;
+        }
+        .container { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #1a1a1a;
+            border-right: 1px solid #2a2a2a;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            margin-bottom: 15px;
+        }
+        .sidebar-header h1 { color: #10b981; font-size: 1.3rem; }
+        .sidebar-header p { color: #666; font-size: 0.85rem; margin-top: 5px; }
+        
+        .endpoint-group { margin-bottom: 15px; }
+        .endpoint-group-title {
+            padding: 8px 20px;
+            color: #666;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .endpoint-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            color: #999;
+        }
+        .endpoint-item:hover { background: #222; color: #fff; }
+        .endpoint-item.active { background: rgba(16,185,129,0.1); border-left: 3px solid #10b981; color: #10b981; }
+        .method-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .method-badge.get { background: #10b981; color: #fff; }
+        .method-badge.post { background: #3b82f6; color: #fff; }
+        .method-badge.put { background: #f59e0b; color: #000; }
+        .method-badge.delete { background: #ef4444; color: #fff; }
+        
+        /* Main content */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; background: #111; }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            color: #10b981;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border: 1px solid #2a2a2a;
+        }
+        .back-btn:hover { background: #1a1a1a; border-color: #10b981; }
+        
+        /* Request panel */
+        .request-panel {
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid #2a2a2a;
+            margin-bottom: 20px;
+        }
+        .panel-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .panel-header h2 { font-size: 1.1rem; color: #fff; }
+        .panel-body { padding: 20px; }
+        
+        /* URL bar */
+        .url-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .url-bar select, .url-bar input {
+            padding: 12px 15px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #222;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+        .url-bar select { width: 100px; }
+        .url-bar input { flex: 1; }
+        .url-bar input:focus, .url-bar select:focus { outline: none; border-color: #10b981; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #10b981; color: #fff; }
+        .btn-primary:hover { background: #059669; }
+        .btn-secondary { background: #222; color: #999; border: 1px solid #333; }
+        .btn-secondary:hover { color: #10b981; border-color: #10b981; }
+        
+        /* Form */
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #222;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+        .form-group textarea { min-height: 100px; font-family: monospace; resize: vertical; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        
+        /* Response panel */
+        .response-panel { margin-top: 20px; }
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .response-header h3 { color: #666; font-size: 0.9rem; }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-badge.success { background: rgba(16,185,129,0.15); color: #10b981; }
+        .status-badge.error { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .response-body {
+            background: #0a0a0a;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #222;
+        }
+        /* Config bar */
+        .config-bar {
+            background: #1a1a1a;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #2a2a2a;
+        }
+        .config-bar label { color: #666; font-size: 0.85rem; }
+        .config-bar input {
+            padding: 8px 12px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #222;
+            color: #fff;
+            width: 250px;
+        }
+        .config-bar input:focus { outline: none; border-color: #10b981; }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            color: #10b981;
+        }
+        .loading.active { display: flex; }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab {
+            padding: 8px 16px;
+            background: #222;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .tab:hover { color: #999; }
+        .tab.active { background: #10b981; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><img src="/logo-papi.png" alt="Logo" style="height: 24px; margin-right: 8px; vertical-align: middle;"> API Tester</h1>
+                <p>Teste os endpoints da API</p>
+            </div>
+            <!-- Instâncias -->
+            <div class="endpoint-group">
+                <div class="endpoint-group-title">Instâncias</div>
+                <div class="endpoint-item" onclick="loadEndpoint('list-instances')">
+                    <span class="method-badge get">GET</span>
+                    <span>Listar Instâncias</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('create-instance')">
+                    <span class="method-badge post">POST</span>
+                    <span>Criar Instância</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('get-qr')">
+                    <span class="method-badge get">GET</span>
+                    <span>Obter QR Code</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('instance-status')">
+                    <span class="method-badge get">GET</span>
+                    <span>Status da Instância</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('delete-instance')">
+                    <span class="method-badge delete">DEL</span>
+                    <span>Deletar Instância</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('logout-instance')">
+                    <span class="method-badge post">POST</span>
+                    <span>Logout</span>
+                </div>
+            </div>
+            
+            <!-- Mensagens -->
+            <div class="endpoint-group">
+                <div class="endpoint-group-title">Mensagens</div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-text')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Texto</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-image')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Imagem</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-video')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Vídeo</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-audio')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Áudio</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-document')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Documento</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-sticker')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Sticker</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-location')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Localização</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-contact')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Contato</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-reaction')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Reação</span>
+                </div>
+            </div>
+            <!-- Mensagens Interativas -->
+            <div class="endpoint-group">
+                <div class="endpoint-group-title">Interativos</div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-buttons')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Botões</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-list')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Lista</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('send-carousel')">
+                    <span class="method-badge post">POST</span>
+                    <span>Enviar Carrossel</span>
+                </div>
+            </div>
+            
+            <!-- Grupos -->
+            <div class="endpoint-group">
+                <div class="endpoint-group-title">Grupos</div>
+                <div class="endpoint-item" onclick="loadEndpoint('list-groups')">
+                    <span class="method-badge get">GET</span>
+                    <span>Listar Grupos</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('create-group')">
+                    <span class="method-badge post">POST</span>
+                    <span>Criar Grupo</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('group-metadata')">
+                    <span class="method-badge get">GET</span>
+                    <span>Metadados do Grupo</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('group-invite')">
+                    <span class="method-badge get">GET</span>
+                    <span>Link de Convite</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('group-participants')">
+                    <span class="method-badge post">POST</span>
+                    <span>Gerenciar Participantes</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('group-settings')">
+                    <span class="method-badge put">PUT</span>
+                    <span>Config. do Grupo</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('leave-group')">
+                    <span class="method-badge post">POST</span>
+                    <span>Sair do Grupo</span>
+                </div>
+            </div>
+            
+            <!-- Perfil -->
+            <div class="endpoint-group">
+                <div class="endpoint-group-title">Perfil</div>
+                <div class="endpoint-item" onclick="loadEndpoint('get-profile-picture')">
+                    <span class="method-badge get">GET</span>
+                    <span>Obter Foto de Perfil</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('update-profile-picture')">
+                    <span class="method-badge put">PUT</span>
+                    <span>Atualizar Foto</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('update-profile-status')">
+                    <span class="method-badge put">PUT</span>
+                    <span>Atualizar Status</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('update-profile-name')">
+                    <span class="method-badge put">PUT</span>
+                    <span>Atualizar Nome</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('privacy-settings')">
+                    <span class="method-badge get">GET</span>
+                    <span>Config. Privacidade</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('check-number')">
+                    <span class="method-badge get">GET</span>
+                    <span>Verificar Número</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('blocked-list')">
+                    <span class="method-badge get">GET</span>
+                    <span>Lista de Bloqueados</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('block-contact')">
+                    <span class="method-badge post">POST</span>
+                    <span>Bloquear/Desbloquear</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('update-presence')">
+                    <span class="method-badge post">POST</span>
+                    <span>Atualizar Presença</span>
+                </div>
+            </div>
+            
+            <!-- Outros -->
+            <div class="endpoint-group">
+                <div class="endpoint-group-title">Outros</div>
+                <div class="endpoint-item" onclick="loadEndpoint('delete-message')">
+                    <span class="method-badge post">POST</span>
+                    <span>Deletar Mensagem</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('edit-message')">
+                    <span class="method-badge post">POST</span>
+                    <span>Editar Mensagem</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('read-messages')">
+                    <span class="method-badge post">POST</span>
+                    <span>Marcar como Lido</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('manage-labels')">
+                    <span class="method-badge post">POST</span>
+                    <span>Gerenciar Labels</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('webhook-config')">
+                    <span class="method-badge post">POST</span>
+                    <span>Configurar Webhook</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('get-webhook')">
+                    <span class="method-badge get">GET</span>
+                    <span>Obter Webhook</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('toggle-public-link')">
+                    <span class="method-badge post">POST</span>
+                    <span>Link Público QR</span>
+                </div>
+                <div class="endpoint-item" onclick="loadEndpoint('license-status')">
+                    <span class="method-badge get">GET</span>
+                    <span>Status da Licença</span>
+                </div>
+            </div>
+        </div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
+            
+            <!-- Config Bar -->
+            <div class="config-bar">
+                <div>
+                    <label>URL da API:</label>
+                    <input type="text" id="apiUrl" placeholder="URL da API">
+                </div>
+                <div>
+                    <label>Instance ID:</label>
+                    <input type="text" id="defaultInstanceId" value="default" placeholder="ID da instância">
+                </div>
+            </div>
+            
+            <!-- Request Panel -->
+            <div class="request-panel">
+                <div class="panel-header">
+                    <span class="method-badge get" id="currentMethod">GET</span>
+                    <h2 id="endpointTitle">Selecione um endpoint</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="url-bar">
+                        <select id="methodSelect" onchange="updateMethod()">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                        <input type="text" id="urlInput" placeholder="/api/instances" readonly>
+                        <button class="btn btn-primary" onclick="sendRequest()">
+                            <i class="fas fa-paper-plane"></i> Enviar
+                        </button>
+                    </div>
+                    
+                    <div class="tabs">
+                        <button class="tab active" onclick="showTab('params')">Parâmetros</button>
+                        <button class="tab" onclick="showTab('body')">Body (JSON)</button>
+                        <button class="tab" onclick="showTab('headers')">Headers</button>
+                    </div>
+                    
+                    <!-- Params Tab -->
+                    <div id="paramsTab" class="tab-content">
+                        <div id="paramsForm"></div>
+                    </div>
+                    
+                    <!-- Body Tab -->
+                    <div id="bodyTab" class="tab-content" style="display:none;">
+                        <div class="form-group">
+                            <label>Request Body (JSON)</label>
+                            <textarea id="requestBody" placeholder='{"key": "value"}'></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Headers Tab -->
+                    <div id="headersTab" class="tab-content" style="display:none;">
+                        <div class="form-group">
+                            <label>Content-Type</label>
+                            <input type="text" value="application/json" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Response Panel -->
+            <div class="response-panel">
+                <div class="response-header">
+                    <h3>Resposta</h3>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            <span>Enviando...</span>
+                        </div>
+                        <span class="status-badge" id="statusBadge" style="display:none;">200 OK</span>
+                        <span id="responseTime" style="color:#888;font-size:0.8rem;"></span>
+                    </div>
+                </div>
+                <div class="response-body" id="responseBody">Clique em "Enviar" para ver a resposta</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Endpoint definitions
+        const endpoints = {
+            // Instâncias
+            'list-instances': {
+                method: 'GET',
+                path: '/api/instances',
+                title: 'Listar Instâncias',
+                params: [],
+                body: null
+            },
+            'create-instance': {
+                method: 'POST',
+                path: '/api/instances',
+                title: 'Criar Instância',
+                params: [],
+                body: { id: 'minha-instancia' }
+            },
+            'get-qr': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/qr',
+                title: 'Obter QR Code',
+                params: ['instanceId'],
+                body: null
+            },
+            'instance-status': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/status',
+                title: 'Status da Instância',
+                params: ['instanceId'],
+                body: null
+            },
+            'delete-instance': {
+                method: 'DELETE',
+                path: '/api/instances/{instanceId}',
+                title: 'Deletar Instância',
+                params: ['instanceId'],
+                body: null
+            },
+            'logout-instance': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/logout',
+                title: 'Logout da Instância',
+                params: ['instanceId'],
+                body: null
+            },
+            
+            // Mensagens
+            'send-text': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-text',
+                title: 'Enviar Texto',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', text: 'Olá! Esta é uma mensagem de teste.' }
+            },
+            'send-image': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-image',
+                title: 'Enviar Imagem',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', url: 'https://example.com/image.jpg', caption: 'Legenda da imagem' }
+            },
+            'send-video': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-video',
+                title: 'Enviar Vídeo',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', url: 'https://example.com/video.mp4', caption: 'Legenda do vídeo' }
+            },
+            'send-audio': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-audio',
+                title: 'Enviar Áudio',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', url: 'https://example.com/audio.mp3', ptt: true }
+            },
+            'send-document': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-document',
+                title: 'Enviar Documento',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', url: 'https://example.com/doc.pdf', filename: 'documento.pdf', mimetype: 'application/pdf' }
+            },
+            'send-sticker': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-sticker',
+                title: 'Enviar Sticker',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', url: 'https://example.com/sticker.webp' }
+            },
+            'send-location': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-location',
+                title: 'Enviar Localização',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', latitude: -23.5505, longitude: -46.6333, name: 'São Paulo', address: 'São Paulo, Brasil' }
+            },
+            'send-contact': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-contact',
+                title: 'Enviar Contato',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', name: 'João Silva', phone: '5511988887777' }
+            },
+            'send-reaction': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-reaction',
+                title: 'Enviar Reação',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', messageId: 'MESSAGE_ID_HERE', emoji: '👍' }
+            },
+            // Interativos
+            'send-buttons': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-buttons',
+                title: 'Enviar Botões',
+                params: ['instanceId'],
+                body: {
+                    jid: '5511999999999@s.whatsapp.net',
+                    text: 'Escolha uma opção abaixo:',
+                    footer: 'Pastorini API',
+                    buttons: [
+                        { displayText: 'Opção 1', quickReplyButton: { id: 'btn1' } },
+                        { displayText: 'Opção 2', quickReplyButton: { id: 'btn2' } },
+                        { displayText: 'Ver Site', urlButton: { url: 'https://google.com' } }
+                    ],
+                    headerType: 'text'
+                }
+            },
+            'send-list': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-list',
+                title: 'Enviar Lista',
+                params: ['instanceId'],
+                body: {
+                    jid: '5511999999999@s.whatsapp.net',
+                    title: 'Menu Principal',
+                    text: 'Selecione uma opção do menu',
+                    footer: 'Pastorini API',
+                    buttonText: 'Ver Opções',
+                    sections: [
+                        {
+                            title: 'Categoria 1',
+                            rows: [
+                                { id: 'item1', title: 'Item 1', description: 'Descrição do item 1' },
+                                { id: 'item2', title: 'Item 2', description: 'Descrição do item 2' }
+                            ]
+                        },
+                        {
+                            title: 'Categoria 2',
+                            rows: [
+                                { id: 'item3', title: 'Item 3', description: 'Descrição do item 3' }
+                            ]
+                        }
+                    ]
+                }
+            },
+            'send-carousel': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/send-carousel',
+                title: 'Enviar Carrossel',
+                params: ['instanceId'],
+                body: {
+                    jid: '5511999999999@s.whatsapp.net',
+                    cards: [
+                        {
+                            header: {
+                                title: 'Oferta Especial',
+                                subtitle: 'Aproveite agora',
+                                imageUrl: 'https://www.w3schools.com/w3css/img_lights.jpg'
+                            },
+                            body: 'Melhores produtos com desconto!',
+                            footer: 'Promoção válida até amanhã',
+                            buttons: [
+                                { displayText: 'Ver Site', urlButton: { url: 'https://google.com' } },
+                                { displayText: 'Eu Quero', quickReplyButton: { id: 'want_it' } }
+                            ]
+                        },
+                        {
+                            header: {
+                                title: 'Novidade',
+                                subtitle: 'Chegou agora',
+                                imageUrl: 'https://www.w3schools.com/w3css/img_forest.jpg'
+                            },
+                            body: 'Confira a nova coleção de verão.',
+                            footer: 'Preços imperdíveis',
+                            buttons: [
+                                { displayText: 'Ligar', callButton: { phoneNumber: '+5511999999999' } },
+                                { displayText: 'Copiar Código', copyCodeButton: { code: 'SUMMER2025' } }
+                            ]
+                        }
+                    ]
+                }
+            },
+            // Grupos
+            'list-groups': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/groups',
+                title: 'Listar Grupos',
+                params: ['instanceId'],
+                body: null
+            },
+            'create-group': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/groups/create',
+                title: 'Criar Grupo',
+                params: ['instanceId'],
+                body: { name: 'Meu Novo Grupo', participants: ['5511999999999@s.whatsapp.net'] }
+            },
+            'group-metadata': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/groups/{groupId}/metadata',
+                title: 'Metadados do Grupo',
+                params: ['instanceId', 'groupId'],
+                body: null
+            },
+            'group-invite': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/groups/{groupId}/invite-code',
+                title: 'Link de Convite',
+                params: ['instanceId', 'groupId'],
+                body: null
+            },
+            'group-participants': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/groups/{groupId}/participants',
+                title: 'Gerenciar Participantes',
+                params: ['instanceId', 'groupId'],
+                body: { action: 'add', participants: ['5511999999999@s.whatsapp.net'] }
+            },
+            'leave-group': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/groups/{groupId}/leave',
+                title: 'Sair do Grupo',
+                params: ['instanceId', 'groupId'],
+                body: null
+            },
+            'group-settings': {
+                method: 'PUT',
+                path: '/api/instances/{instanceId}/groups/{groupId}/settings',
+                title: 'Configurações do Grupo',
+                params: ['instanceId', 'groupId'],
+                body: { subject: 'Novo Nome do Grupo', description: 'Nova descrição', announce: false, restrict: false }
+            },
+            
+            // Perfil
+            'get-profile-picture': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/profile-picture/{jid}',
+                title: 'Foto de Perfil',
+                params: ['instanceId', 'jid'],
+                body: null
+            },
+            'check-number': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/check-number/{phone}',
+                title: 'Verificar Número',
+                params: ['instanceId', 'phone'],
+                body: null
+            },
+            'blocked-list': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/blocked',
+                title: 'Lista de Bloqueados',
+                params: ['instanceId'],
+                body: null
+            },
+            'block-contact': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/block',
+                title: 'Bloquear/Desbloquear',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', action: 'block' }
+            },
+            'update-profile-picture': {
+                method: 'PUT',
+                path: '/api/instances/{instanceId}/profile-picture',
+                title: 'Atualizar Foto de Perfil',
+                params: ['instanceId'],
+                body: { url: 'https://example.com/minha-foto.jpg' }
+            },
+            'update-profile-status': {
+                method: 'PUT',
+                path: '/api/instances/{instanceId}/profile-status',
+                title: 'Atualizar Status',
+                params: ['instanceId'],
+                body: { status: 'Disponível via Pastorini API' }
+            },
+            'update-profile-name': {
+                method: 'PUT',
+                path: '/api/instances/{instanceId}/profile-name',
+                title: 'Atualizar Nome',
+                params: ['instanceId'],
+                body: { name: 'Meu Novo Nome' }
+            },
+            'privacy-settings': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/privacy-settings',
+                title: 'Configurações de Privacidade',
+                params: ['instanceId'],
+                body: null
+            },
+            'update-presence': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/presence',
+                title: 'Atualizar Presença',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', presence: 'composing' }
+            },
+            // Outros
+            'delete-message': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/delete-message',
+                title: 'Deletar Mensagem',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', messageId: 'MESSAGE_ID_HERE', fromMe: true }
+            },
+            'edit-message': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/edit-message',
+                title: 'Editar Mensagem',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', messageId: 'MESSAGE_ID_HERE', newText: 'Texto editado' }
+            },
+            'read-messages': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/read-messages',
+                title: 'Marcar como Lido',
+                params: ['instanceId'],
+                body: { keys: [{ remoteJid: '5511999999999@s.whatsapp.net', id: 'MESSAGE_ID_HERE', fromMe: false }] }
+            },
+            'webhook-config': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/webhook',
+                title: 'Configurar Webhook',
+                params: ['instanceId'],
+                body: { url: 'https://seu-servidor.com/webhook', enabled: true, events: ['messages', 'status'] }
+            },
+            'get-webhook': {
+                method: 'GET',
+                path: '/api/instances/{instanceId}/webhook',
+                title: 'Obter Configuração Webhook',
+                params: ['instanceId'],
+                body: null
+            },
+            'manage-labels': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/labels',
+                title: 'Gerenciar Labels',
+                params: ['instanceId'],
+                body: { jid: '5511999999999@s.whatsapp.net', labelId: 'label_id', action: 'add' }
+            },
+            'toggle-public-link': {
+                method: 'POST',
+                path: '/api/instances/{instanceId}/toggle-public-link',
+                title: 'Link Público QR Code',
+                params: ['instanceId'],
+                body: { enabled: true }
+            },
+            'license-status': {
+                method: 'GET',
+                path: '/api/license/status',
+                title: 'Status da Licença',
+                params: [],
+                body: null
+            }
+        };
+        
+        let currentEndpoint = null;
+        
+        function loadEndpoint(key) {
+            const endpoint = endpoints[key];
+            if (!endpoint) return;
+            
+            currentEndpoint = key;
+            
+            // Update sidebar selection
+            document.querySelectorAll('.endpoint-item').forEach(el => el.classList.remove('active'));
+            event.target.closest('.endpoint-item').classList.add('active');
+            
+            // Update UI
+            document.getElementById('endpointTitle').textContent = endpoint.title;
+            document.getElementById('methodSelect').value = endpoint.method;
+            updateMethod();
+            
+            // Build params form
+            const paramsForm = document.getElementById('paramsForm');
+            const instanceId = document.getElementById('defaultInstanceId').value;
+            
+            let paramsHtml = '';
+            endpoint.params.forEach(param => {
+                let defaultValue = '';
+                if (param === 'instanceId') defaultValue = instanceId;
+                else if (param === 'groupId') defaultValue = '123456789@g.us';
+                else if (param === 'jid') defaultValue = '5511999999999@s.whatsapp.net';
+                else if (param === 'phone') defaultValue = '5511999999999';
+                
+                paramsHtml += `
+                    <div class="form-group">
+                        <label>${param}</label>
+                        <input type="text" id="param_${param}" value="${defaultValue}" placeholder="${param}">
+                    </div>
+                `;
+            });
+            paramsForm.innerHTML = paramsHtml || '<p style="color:#888">Nenhum parâmetro de URL</p>';
+            
+            // Update body
+            if (endpoint.body) {
+                document.getElementById('requestBody').value = JSON.stringify(endpoint.body, null, 2);
+            } else {
+                document.getElementById('requestBody').value = '';
+            }
+            
+            updateUrl();
+        }
+        function updateUrl() {
+            if (!currentEndpoint) return;
+            const endpoint = endpoints[currentEndpoint];
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            let path = endpoint.path;
+            endpoint.params.forEach(param => {
+                const value = document.getElementById(`param_${param}`)?.value || `{${param}}`;
+                path = path.replace(`{${param}}`, value);
+            });
+            
+            document.getElementById('urlInput').value = apiUrl + path;
+        }
+        
+        function updateMethod() {
+            const method = document.getElementById('methodSelect').value;
+            const badge = document.getElementById('currentMethod');
+            badge.textContent = method;
+            badge.className = 'method-badge ' + method.toLowerCase();
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').style.display = 'block';
+        }
+        
+        async function sendRequest() {
+            if (!currentEndpoint) {
+                alert('Selecione um endpoint primeiro');
+                return;
+            }
+            
+            const endpoint = endpoints[currentEndpoint];
+            const url = document.getElementById('urlInput').value;
+            const method = document.getElementById('methodSelect').value;
+            const bodyText = document.getElementById('requestBody').value;
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('statusBadge').style.display = 'none';
+            document.getElementById('responseTime').textContent = '';
+            document.getElementById('responseBody').textContent = 'Enviando...';
+            
+            const startTime = Date.now();
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (method !== 'GET' && bodyText) {
+                    options.body = bodyText;
+                }
+                
+                const response = await fetch(url, options);
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                let data;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    data = await response.text();
+                }
+                
+                // Update UI
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('statusBadge').style.display = 'inline-block';
+                document.getElementById('statusBadge').textContent = `${response.status} ${response.statusText}`;
+                document.getElementById('statusBadge').className = 'status-badge ' + (response.ok ? 'success' : 'error');
+                document.getElementById('responseTime').textContent = `${duration}ms`;
+                document.getElementById('responseBody').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+                
+            } catch (error) {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('statusBadge').style.display = 'inline-block';
+                document.getElementById('statusBadge').textContent = 'Erro';
+                document.getElementById('statusBadge').className = 'status-badge error';
+                document.getElementById('responseBody').textContent = 'Erro: ' + error.message;
+            }
+        }
+        
+        // Set API URL automatically from current domain
+        (function() {
+            const currentUrl = window.location.origin;
+            document.getElementById('apiUrl').value = currentUrl;
+        })();
+        
+        // Update URL when params change
+        document.getElementById('apiUrl').addEventListener('input', updateUrl);
+        document.getElementById('defaultInstanceId').addEventListener('input', () => {
+            if (currentEndpoint) loadEndpoint(currentEndpoint);
+        });
+        
+        // Load first endpoint
+        document.querySelector('.endpoint-item').click();
+        
+        // Preserve API key in navigation links
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('key');
+            if (apiKey) {
+                document.querySelectorAll('a[href]').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('/') && !href.includes('?key=')) {
+                        link.setAttribute('href', href + '?key=' + apiKey);
+                    }
+                });
+            }
+        })();
+    </script>
+    
+    <!-- Espaço para o footer fixo -->
+    <div style="height: 50px;"></div>
+    
+    <!-- Footer Fixo -->
+    <footer id="mainFooter" style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 12px 20px; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 0.8rem; z-index: 100;">
+        <span id="footerCredits">© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys</span>
+    </footer>
+    
+    <script>
+        // Proteção de créditos do footer
+        (function() {
+            const fc = '© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys';
+            const fe = document.getElementById('footerCredits');
+            const ff = document.getElementById('mainFooter');
+            function checkFooter() {
+                if (!fe || !ff || fe.innerHTML !== fc || ff.style.display === 'none' || ff.style.visibility === 'hidden' || ff.style.opacity === '0') {
+                    if (ff) { ff.style.cssText = 'position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px 20px;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);color:#888;font-size:0.8rem;z-index:100;display:block;visibility:visible;opacity:1;'; }
+                    if (fe) fe.innerHTML = fc;
+                    else if (ff) ff.innerHTML = '<span id="footerCredits">' + fc + '</span>';
+                }
+            }
+            checkFooter();
+            setInterval(checkFooter, 2000);
+            new MutationObserver(checkFooter).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+        })();
+    </script>
+</body>
+</html>

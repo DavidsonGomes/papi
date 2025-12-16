@@ -1,0 +1,12 @@
+{
+  "hash": "90d30e83c03055c81082e396171b9273d459d73b47de176f48624b91dda47af9",
+  "files": [
+    "lib/License/licenseManager.js:e04c866853a9387a",
+    "lib/Utils/messages.js:95af5c49901b77bd",
+    "lib/Socket/messages-send.js:7a5482c4ea7ecffb",
+    "server.ts:2c6b15e0e1561eef",
+    "instanceManager.ts:5fc36b26ebdd0e45"
+  ],
+  "buildDate": "2025-12-14T19:29:11.009Z",
+  "version": "1.3.0"
+}

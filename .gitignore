@@ -1,0 +1,11 @@
+node_modules/
+.env
+sessions/
+Media/
+baileys_auth_info/
+wa-logs.txt
+*.log
+.machine-id
+licenses.db
+papiAdmin/node_modules/
+papiAdmin/licenses.db

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pastorini API</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="background-glow"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="/logo-papi.png" alt="Pastorini API" style="height: 42px; margin-right: 12px;">
+                <h1 style="font-size: 1.2rem; color: #fff; font-weight: 500;">Pastorini API</h1>
+                <span class="version-badge">v1.3</span>
+            </div>
+            <div class="header-buttons">
+                <a href="/api-tester.html" class="header-link">
+                    <i class="fa-solid fa-flask"></i> API Tester
+                </a>
+                <a href="/docs.html" class="header-link" id="docsBtn">
+                    <i class="fa-solid fa-book"></i> Documentação
+                </a>
+                <button id="addInstanceBtn" class="btn-primary">
+                    <i class="fa-solid fa-plus"></i> Nova Instância
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Server Stats Dashboard -->
+            <div class="stats-header">
+                <span class="stats-title"><i class="fa-solid fa-chart-line"></i> Monitoramento</span>
+                <div class="refresh-selector">
+                    <span>Atualizar:</span>
+                    <select id="refreshRate" onchange="changeRefreshRate()">
+                        <option value="500">0.5s</option>
+                        <option value="1000" selected>1s</option>
+                        <option value="5000">5s</option>
+                    </select>
+                </div>
+            </div>
+            <div id="serverStats" class="server-stats">
+                <div class="stat-card">
+                    <div class="stat-icon cpu"><i class="fa-solid fa-microchip"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">CPU</span>
+                        <span class="stat-value" id="cpuUsage">--%</span>
+                        <span class="stat-detail" id="cpuCores">-- cores</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon memory"><i class="fa-solid fa-memory"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Memória RAM</span>
+                        <span class="stat-value" id="memUsage">--%</span>
+                        <span class="stat-detail" id="memDetail">-- / --</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon process"><i class="fa-solid fa-server"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Processo Node</span>
+                        <span class="stat-value" id="processMemory">-- MB</span>
+                        <span class="stat-detail" id="nodeVersion">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon uptime"><i class="fa-solid fa-clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label">Uptime</span>
+                        <span class="stat-value" id="apiUptime">--</span>
+                        <span class="stat-detail" id="instancesCount">-- instâncias</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="instancesGrid" class="grid">
+                <!-- Instances will be injected here -->
+            </div>
+        </main>
+    </div>
+    
+    <!-- Espaço para o footer fixo -->
+    <div style="height: 50px;"></div>
+
+    <!-- QR Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content glass">
+            <span class="close qr-close">&times;</span>
+            <h2>Conectar Instância</h2>
+            <div class="qr-container">
+                <img id="qrImage" src="" alt="QR Code" style="display: none;">
+                <div id="qrLoader" class="loader"></div>
+                <p id="qrStatus">Aguardando QR Code...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Message Modal -->
+    <div id="sendModal" class="modal">
+        <div class="modal-content glass large-modal">
+            <span class="close send-close">&times;</span>
+            <h2>Enviar Mensagem</h2>
+
+            <div class="form-group">
+                <label>Número (ex: 5582999...)</label>
+                <input type="text" id="targetJid" placeholder="5582988898565@s.whatsapp.net"
+                    value="558288898565@s.whatsapp.net">
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="carousel">Carrossel</button>
+                <button class="tab-btn" data-tab="list">Lista (Menu)</button>
+                <button class="tab-btn" data-tab="buttons">Botões</button>
+            </div>
+
+            <div id="carouselTab" class="tab-content active">
+                <p class="hint">Envia um carrossel de exemplo com 2 cards.</p>
+                <!-- Simplified for demo -->
+            </div>
+
+            <div id="listTab" class="tab-content">
+                <div class="form-group">
+                    <input type="text" id="listTitle" placeholder="Título do Menu" value="Loja Virtual">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="listText" placeholder="Texto do Corpo" value="Selecione uma categoria">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="listButtonParams" placeholder="Texto do Botão" value="Ver Opções">
+                </div>
+                <!-- Rows would be dynamic, hardcoded for demo simplicity or parsed from JSON if advanced -->
+                <p class="hint">Será enviado com seções de exemplo.</p>
+            </div>
+
+            <div id="buttonsTab" class="tab-content">
+                <div class="form-group">
+                    <input type="text" id="btnText" placeholder="Mensagem" value="Escolha uma ação abaixo:">
+                </div>
+                <div class="form-group">
+                    <select id="btnHeaderType">
+                        <option value="text">Apenas Texto</option>
+                        <option value="image">Imagem</option>
+                        <option value="video">Vídeo</option>
+                    </select>
+                </div>
+                <div class="form-group" id="mediaUrlGroup" style="display:none;">
+                    <input type="text" id="btnMediaUrl" placeholder="URL da Mídia">
+                </div>
+                <!-- Interactive builder for buttons is complex, using predefined set for demo -->
+                <p class="hint">Será enviado com botões de exemplo (URL, Call, Reply).</p>
+            </div>
+
+            <button id="sendMessageBtn" class="btn-primary" style="width: 100%; margin-top: 1rem;">
+                <i class="fa-solid fa-paper-plane"></i> Enviar
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content glass large-modal">
+            <span class="close settings-close">&times;</span>
+            <h2><i class="fa-solid fa-gear"></i> Configurações da Instância</h2>
+
+            <div class="settings-tabs">
+                <button class="settings-tab-btn active" data-settings-tab="webhook">
+                    <i class="fa-solid fa-satellite-dish"></i> Webhook
+                </button>
+                <button class="settings-tab-btn" data-settings-tab="websocket">
+                    <i class="fa-solid fa-plug"></i> WebSocket
+                </button>
+            </div>
+
+            <!-- Webhook Tab -->
+            <div id="webhookSettingsTab" class="settings-tab-content active">
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <div>
+                            <h3>Webhook</h3>
+                            <p class="hint">Receba mensagens e eventos via HTTP POST</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="webhookEnabled">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>URL do Webhook</label>
+                        <input type="text" id="webhookUrl" placeholder="https://seu-servidor.com/webhook">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Eventos para receber:</label>
+                        <div class="checkbox-group events-grid">
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="messages" checked>
+                                <span><i class="fa-solid fa-message"></i> Mensagens recebidas</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="message_status" checked>
+                                <span><i class="fa-solid fa-check-double"></i> Status de mensagens</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="message_reaction">
+                                <span><i class="fa-solid fa-heart"></i> Reações</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="presence">
+                                <span><i class="fa-solid fa-circle"></i> Presença (online/digitando)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="group_update">
+                                <span><i class="fa-solid fa-users"></i> Atualizações de grupos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="group_participants">
+                                <span><i class="fa-solid fa-user-plus"></i> Participantes de grupos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="call">
+                                <span><i class="fa-solid fa-phone"></i> Chamadas</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="contacts">
+                                <span><i class="fa-solid fa-address-book"></i> Contatos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="chats">
+                                <span><i class="fa-solid fa-comments"></i> Chats</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" class="event-checkbox" data-event="labels">
+                                <span><i class="fa-solid fa-tag"></i> Labels/Etiquetas</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WebSocket Tab -->
+            <div id="websocketSettingsTab" class="settings-tab-content">
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <div>
+                            <h3>WebSocket</h3>
+                            <p class="hint">Conexão em tempo real para receber eventos</p>
+                        </div>
+                        <span class="badge-coming-soon">Em breve</span>
+                    </div>
+                    
+                    <div class="info-box">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <div>
+                            <p>O WebSocket permite receber eventos em tempo real sem precisar de um servidor público.</p>
+                            <p style="margin-top: 8px;">Conecte-se via: <code>ws://seu-servidor:3000/ws/:instanceId</code></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="saveWebhookSettings()" class="btn-primary" style="width: 100%; margin-top: 1.5rem;">
+                <i class="fa-solid fa-save"></i> Salvar Configurações
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Fixo -->
+    <footer id="mainFooter" style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 12px 20px; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 0.8rem; z-index: 100;">
+        <span id="footerCredits">© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys</span>
+    </footer>
+
+    <!-- Contribute Modal -->
+    <div id="contributeModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: #1a1a1a; border-radius: 16px; padding: 30px; max-width: 450px; width: 90%; border: 1px solid #333; position: relative;">
+            <button onclick="closeContributeModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #666; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            
+            <div style="text-align: center; margin-bottom: 25px;">
+                <i class="fa-solid fa-heart" style="font-size: 3rem; color: #10b981; margin-bottom: 15px;"></i>
+                <h2 style="color: #fff; margin-bottom: 10px;">Contribuir com o Projeto</h2>
+                <p style="color: #888; font-size: 0.9rem;">Sua contribuição ajuda a manter o desenvolvimento ativo</p>
+            </div>
+            
+            <!-- Amount Selection - Using Stripe Payment Links -->
+            <div style="margin-bottom: 20px;">
+                <label style="color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 10px;">Escolha o valor:</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <a href="https://buy.stripe.com/PLACEHOLDER_10" target="_blank" class="contribute-link" style="padding: 15px; border: 2px solid #333; background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.2s;">R$ 10</a>
+                    <a href="https://buy.stripe.com/PLACEHOLDER_25" target="_blank" class="contribute-link" style="padding: 15px; border: 2px solid #333; background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.2s;">R$ 25</a>
+                    <a href="https://buy.stripe.com/PLACEHOLDER_50" target="_blank" class="contribute-link" style="padding: 15px; border: 2px solid #333; background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.2s;">R$ 50</a>
+                    <a href="https://buy.stripe.com/PLACEHOLDER_100" target="_blank" class="contribute-link" style="padding: 15px; border: 2px solid #333; background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.2s;">R$ 100</a>
+                    <a href="https://buy.stripe.com/PLACEHOLDER_200" target="_blank" class="contribute-link" style="padding: 15px; border: 2px solid #333; background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.2s;">R$ 200</a>
+                    <a href="https://buy.stripe.com/PLACEHOLDER_CUSTOM" target="_blank" class="contribute-link" style="padding: 15px; border: 2px solid #333; background: #222; color: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.2s;">Outro</a>
+                </div>
+            </div>
+            
+            <!-- PIX Option -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
+                <p style="color: #aaa; font-size: 0.85rem; text-align: center; margin-bottom: 15px;">Ou contribua via PIX:</p>
+                <div style="background: #222; border-radius: 8px; padding: 15px; text-align: center;">
+                    <p style="color: #10b981; font-weight: 600; margin-bottom: 5px;">Chave PIX (Email):</p>
+                    <code id="pixKey" style="background: #333; padding: 8px 15px; border-radius: 6px; color: #fff; display: inline-block; cursor: pointer;" onclick="copyPixKey()">seu-email@exemplo.com</code>
+                    <p style="color: #666; font-size: 0.75rem; margin-top: 8px;">Clique para copiar</p>
+                </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px; color: #666; font-size: 0.75rem;">
+                <i class="fa-solid fa-shield-halved"></i> Pagamento seguro via Stripe
+            </p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Contribute Modal Functions
+        // Contribute Modal Functions
+        function openContributeModal() {
+            document.getElementById('contributeModal').style.display = 'flex';
+        }
+        
+        function closeContributeModal() {
+            document.getElementById('contributeModal').style.display = 'none';
+        }
+        
+        function copyPixKey() {
+            const pixKey = document.getElementById('pixKey').textContent;
+            navigator.clipboard.writeText(pixKey).then(() => {
+                const el = document.getElementById('pixKey');
+                const original = el.textContent;
+                el.textContent = '✓ Copiado!';
+                el.style.background = '#10b981';
+                setTimeout(() => {
+                    el.textContent = original;
+                    el.style.background = '#333';
+                }, 2000);
+            });
+        }
+        
+        // Hover effect for contribute links
+        document.querySelectorAll('.contribute-link').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.borderColor = '#10b981';
+                this.style.background = 'rgba(16,185,129,0.1)';
+                this.style.color = '#10b981';
+            });
+            link.addEventListener('mouseleave', function() {
+                this.style.borderColor = '#333';
+                this.style.background = '#222';
+                this.style.color = '#fff';
+            });
+        });
+        
+        // Close modal on outside click
+        document.getElementById('contributeModal').addEventListener('click', function(e) {
+            if (e.target === this) closeContributeModal();
+        });
+        
+        // Proteção de créditos do footer
+        (function() {
+            const fc = '© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys';
+            const fe = document.getElementById('footerCredits');
+            const ff = document.getElementById('mainFooter');
+            function checkFooter() {
+                if (!fe || !ff || fe.innerHTML !== fc || ff.style.display === 'none' || ff.style.visibility === 'hidden' || ff.style.opacity === '0') {
+                    if (ff) { ff.style.cssText = 'position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px 20px;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);color:#888;font-size:0.8rem;z-index:100;display:block;visibility:visible;opacity:1;'; }
+                    if (fe) fe.innerHTML = fc;
+                    else if (ff) ff.innerHTML = '<span id="footerCredits">' + fc + '</span>';
+                }
+            }
+            checkFooter();
+            setInterval(checkFooter, 2000);
+            new MutationObserver(checkFooter).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+        })();
+        
+        // Preserve API key in navigation links
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('key');
+            if (apiKey) {
+                document.querySelectorAll('a[href]').forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('/') && !href.includes('?key=')) {
+                        link.setAttribute('href', href + '?key=' + apiKey);
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

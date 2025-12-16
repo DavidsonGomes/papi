@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectar WhatsApp - Pastorini API</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 500px;
+        }
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #25D366;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .qr-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .qr-container {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            display: inline-block;
+            min-width: 280px;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #qrImage {
+            max-width: 240px;
+            max-height: 240px;
+        }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0,217,255,0.2);
+            border-top-color: #00d9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        .status.waiting {
+            background: rgba(255,193,7,0.1);
+            color: #ffc107;
+        }
+        .status.connected {
+            background: rgba(40,167,69,0.1);
+            color: #28a745;
+        }
+        .status.error {
+            background: rgba(220,53,69,0.1);
+            color: #dc3545;
+        }
+        .status.disabled {
+            background: rgba(220,53,69,0.1);
+            color: #dc3545;
+        }
+        .instructions {
+            margin-top: 30px;
+            text-align: left;
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .instructions h3 {
+            color: #00d9ff;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        .instructions ol {
+            color: #aaa;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .footer {
+            margin-top: 30px;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+        }
+        .footer a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <h1>Conectar WhatsApp</h1>
+        <p class="subtitle">Escaneie o QR Code para conectar</p>
+        
+        <div class="qr-box">
+            <div class="qr-container">
+                <img id="qrImage" src="" alt="QR Code" style="display: none;">
+                <div id="qrLoader" class="loader"></div>
+            </div>
+            <div id="status" class="status waiting">
+                <i class="fa-solid fa-clock"></i> Aguardando QR Code...
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3><i class="fa-solid fa-circle-info"></i> Como conectar:</h3>
+            <ol>
+                <li>Abra o WhatsApp no seu celular</li>
+                <li>Toque em <strong>Menu</strong> ou <strong>Configurações</strong></li>
+                <li>Selecione <strong>Dispositivos conectados</strong></li>
+                <li>Toque em <strong>Conectar um dispositivo</strong></li>
+                <li>Aponte a câmera para o QR Code acima</li>
+            </ol>
+        </div>
+        
+    </div>
+    
+    <!-- Footer Fixo -->
+    <footer id="mainFooter" style="position: fixed; bottom: 0; left: 0; right: 0; text-align: center; padding: 12px 20px; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.1); color: #888; font-size: 0.8rem; z-index: 100;">
+        <span id="footerCredits">© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys</span>
+    </footer>
+
+    <script>
+        // Proteção de créditos
+        (function() {
+            const fc = '© 2025 <a href="https://wa.me/5582988898565" target="_blank" style="color: #10b981; text-decoration: none;">Pastorini API</a> - Powered by Baileys';
+            const fe = document.getElementById('footerCredits');
+            const ff = document.getElementById('mainFooter');
+            function checkFooter() {
+                if (!fe || !ff || fe.innerHTML !== fc || ff.style.display === 'none' || ff.style.visibility === 'hidden') {
+                    if (ff) { ff.style.cssText = 'position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px 20px;background:rgba(10,10,10,0.95);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1);color:#888;font-size:0.8rem;z-index:100;display:block;visibility:visible;'; }
+                    if (fe) fe.innerHTML = fc;
+                }
+            }
+            checkFooter(); setInterval(checkFooter, 2000);
+            new MutationObserver(checkFooter).observe(document.body, { childList: true, subtree: true, attributes: true });
+        })();
+        const API_URL = window.location.origin + '/api';
+        const urlParams = new URLSearchParams(window.location.search);
+        const instanceId = urlParams.get('id');
+        
+        const qrImage = document.getElementById('qrImage');
+        const qrLoader = document.getElementById('qrLoader');
+        const status = document.getElementById('status');
+        
+        let pollInterval = null;
+        
+        async function checkAndPollQr() {
+            if (!instanceId) {
+                status.className = 'status error';
+                status.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Link inválido';
+                qrLoader.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // Verifica se o link público está habilitado
+                const statusRes = await fetch(`${API_URL}/instances/${instanceId}/public-status`);
+                if (!statusRes.ok) {
+                    const err = await statusRes.json();
+                    if (err.error === 'Public link disabled') {
+                        status.className = 'status disabled';
+                        status.innerHTML = '<i class="fa-solid fa-lock"></i> Link desabilitado pelo administrador';
+                        qrLoader.style.display = 'none';
+                        return;
+                    }
+                    throw new Error(err.error);
+                }
+                
+                const data = await statusRes.json();
+                
+                if (data.status === 'CONNECTED') {
+                    status.className = 'status connected';
+                    status.innerHTML = '<i class="fa-solid fa-check-circle"></i> Conectado com sucesso!';
+                    qrImage.style.display = 'none';
+                    qrLoader.style.display = 'none';
+                    if (pollInterval) clearInterval(pollInterval);
+                    return;
+                }
+                
+                if (data.status === 'CONNECTING') {
+                    status.className = 'status waiting';
+                    status.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Conectando... aguarde';
+                    qrLoader.style.display = 'block';
+                    qrImage.style.display = 'none';
+                    return;
+                }
+                
+                // Busca QR Code
+                const qrRes = await fetch(`${API_URL}/instances/${instanceId}/qr`);
+                if (qrRes.ok) {
+                    const qrData = await qrRes.json();
+                    qrImage.src = qrData.qrImage;
+                    qrImage.style.display = 'block';
+                    qrLoader.style.display = 'none';
+                    status.className = 'status waiting';
+                    status.innerHTML = '<i class="fa-solid fa-qrcode"></i> Escaneie o QR Code acima';
+                } else {
+                    status.className = 'status waiting';
+                    status.innerHTML = '<i class="fa-solid fa-clock"></i> Aguardando QR Code...';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                status.className = 'status error';
+                status.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Erro ao carregar. Tente novamente.';
+            }
+        }
+        
+        // Inicia polling
+        checkAndPollQr();
+        pollInterval = setInterval(checkAndPollQr, 2000);
+    </script>
+</body>
+</html>

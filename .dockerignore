@@ -1,0 +1,74 @@
+# ╔═══════════════════════════════════════════════════════════════╗
+# ║                      PASTORINI API                            ║
+# ║              Docker Ignore File                               ║
+# ╚═══════════════════════════════════════════════════════════════╝
+
+# Dependências (serão instaladas no container)
+node_modules/
+
+# Arquivos de desenvolvimento (src/ não vai para produção)
+src/
+tsconfig.json
+tsconfig.build.json
+# tsconfig.production.json é necessário - NÃO ignorar
+
+# Testes
+**/*.test.ts
+**/*.test-e2e.ts
+__tests__/
+jest.config.ts
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs e arquivos temporários
+*.log
+wa-logs.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de ambiente (serão passados via docker-compose)
+.env
+.env.*
+!.env.production.example
+
+# Dados locais (serão volumes no docker)
+sessions/
+Media/
+baileys_auth_info/
+licenses.db
+
+# Build info local (NECESSÁRIO para integridade - não ignorar)
+# build-info.json
+
+# Documentação
+*.md
+!README.md
+docs/
+typedoc.json
+CHANGELOG.md
+
+# Outros
+.npmignore
+.prettierrc
+.prettierignore
+.editorconfig
+.release-it.yml
+.machine-id
+
+# Arquivos de teste
+test-*.js
+Example/
+
+# Proto extract (não necessário em produção)
+proto-extract/
