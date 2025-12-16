@@ -21,8 +21,7 @@
     "engine-requirements.js"
   ],
   "scripts": {
-    "start": "tsx server.ts",
-    "server": "tsx server.ts"
+    "start": "node --loader=tsx/esm server.ts",    "server": "tsx server.ts"
   },
   "dependencies": {
     "@cacheable/node-cache": "^1.4.0",
