@@ -10,6 +10,8 @@ export * from './Product.js';
 export * from './Call.js';
 export * from './Signal.js';
 export * from './Newsletter.js';
+export * from './Label.js';
+export * from './LabelAssociation.js';
 import type { AuthenticationState } from './Auth.js';
 import type { SocketConfig } from './Socket.js';
 export type UserFacingSocketConfig = Partial<SocketConfig> & {
